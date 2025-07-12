@@ -1,0 +1,698 @@
+/* 基本設定 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', 'Hiragino Sans', 'ヒラギノ角ゴシック', 'Yu Gothic', 'Meiryo', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+    overflow-x: hidden;
+}
+
+/* ヘッダー */
+header {
+    text-align: center;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+    font-size: 2.5em;
+    color: #4a4a4a;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* プレイヤーターン表示を大きく強調 */
+#current-player-display {
+    background: linear-gradient(135deg, #ff6b6b, #ffa500);
+    padding: 20px;
+    border-radius: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    animation: player-turn-glow 2s ease-in-out infinite;
+}
+
+@keyframes player-turn-glow {
+    0%, 100% { box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); }
+    50% { box-shadow: 0 8px 40px rgba(255, 107, 107, 0.6); }
+}
+
+#current-player-avatar {
+    font-size: 4em;
+    margin-bottom: 10px;
+    animation: avatar-bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes avatar-bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+#current-player-name {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: 5px;
+}
+
+#current-player-subtitle {
+    font-size: 1.3em;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+#message {
+    font-size: 1.3em;
+    color: #666;
+    font-weight: bold;
+    padding: 10px;
+    background: #f0f8ff;
+    border-radius: 10px;
+    border: 2px solid #87ceeb;
+    margin-bottom: 10px;
+}
+
+#bgm-controls button {
+    padding: 8px 16px;
+    background: linear-gradient(45deg, #ff6b6b, #ffa500);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+#bgm-controls button:hover {
+    transform: scale(1.05);
+}
+
+/* メインエリア */
+main {
+    max-width: 1400px; /* 幅を拡大 */
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* すごろくボード */
+#board {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin: 20px auto;
+    max-width: 900px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.square {
+    width: 90px;
+    height: 90px;
+    border: 3px solid #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    border-radius: 12px;
+    position: relative;
+    transition: all 0.3s ease;
+    overflow: visible;
+}
+
+.square:hover {
+    transform: scale(1.05);
+}
+
+/* 通常マス */
+.square.normal {
+    background: #f0f8ff;
+    color: #333;
+}
+
+/* ギミックマス */
+.square.special {
+    background: linear-gradient(45deg, #ff6b6b, #ffa500);
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+/* スタートとゴール */
+.square.start {
+    background: linear-gradient(45deg, #4ecdc4, #44a08d);
+    color: white;
+    font-size: 12px;
+}
+
+.square.goal {
+    background: linear-gradient(45deg, #f093fb, #f5576c);
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* プレイヤーコマを大幅に拡大 */
+.player-pieces {
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.player-piece {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 4px solid #333;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
+    animation: piece-bounce 2s infinite;
+}
+
+@keyframes piece-bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-12px); }
+    60% { transform: translateY(-6px); }
+}
+
+/* プレイヤー別コマスタイル */
+.player-piece.kenchan {
+    background: radial-gradient(circle, #ffcccb, #ff6b6b);
+    border-color: #ff0000;
+}
+
+.player-piece.papa {
+    background: radial-gradient(circle, #add8e6, #0066cc);
+    border-color: #0000ff;
+}
+
+.player-piece.mama {
+    background: radial-gradient(circle, #fffacd, #ffd700);
+    border-color: #ffaa00;
+}
+
+/* 現在のプレイヤーのコマを特別に強調 */
+.player-piece.current-player {
+    transform: scale(1.2);
+    animation: current-player-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes current-player-glow {
+    0%, 100% { box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4); }
+    50% { box-shadow: 0 5px 25px rgba(255, 255, 0, 0.8); }
+}
+
+/* ゲームコントロール */
+#game-controls {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 30px; /* 間隔を拡大 */
+    margin: 20px 0;
+}
+
+/* 【改良】射幸性を煽るサイコロエリア */
+#dice-area {
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+#dice-area::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: dice-area-shine 3s ease-in-out infinite;
+}
+
+@keyframes dice-area-shine {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 興奮度メーター */
+#dice-excitement-meter {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 20px;
+}
+
+.excitement-bar {
+    width: 20px;
+    height: 40px;
+    background: #333;
+    border-radius: 10px;
+    animation: excitement-pulse 1.5s ease-in-out infinite;
+}
+
+.excitement-bar:nth-child(1) { animation-delay: 0s; }
+.excitement-bar:nth-child(2) { animation-delay: 0.2s; }
+.excitement-bar:nth-child(3) { animation-delay: 0.4s; }
+.excitement-bar:nth-child(4) { animation-delay: 0.6s; }
+.excitement-bar:nth-child(5) { animation-delay: 0.8s; }
+
+@keyframes excitement-pulse {
+    0%, 100% { background: #333; transform: scaleY(1); }
+    50% { background: #ff6b6b; transform: scaleY(1.5); }
+}
+
+#dice-container {
+    perspective: 1000px;
+    margin: 20px 0;
+    position: relative;
+}
+
+#dice-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.3), transparent);
+    animation: dice-glow-pulse 2s ease-in-out infinite;
+    z-index: 1;
+}
+
+@keyframes dice-glow-pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.3; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.7; }
+}
+
+#dice {
+    font-size: 5em;
+    width: 100px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    background: linear-gradient(45deg, #ffd700, #ffaa00);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transition: transform 1s ease-out;
+    transform-style: preserve-3d;
+    z-index: 2;
+    position: relative;
+    animation: dice-idle-float 3s ease-in-out infinite;
+}
+
+@keyframes dice-idle-float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+#dice.is-rolling {
+    animation: dice-super-spin 2s ease-out forwards;
+}
+
+@keyframes dice-super-spin {
+    0% { transform: rotateX(0) rotateY(0) rotateZ(0) scale(1); }
+    25% { transform: rotateX(360deg) rotateY(180deg) rotateZ(90deg) scale(1.3); }
+    50% { transform: rotateX(720deg) rotateY(360deg) rotateZ(180deg) scale(1.1); }
+    75% { transform: rotateX(1080deg) rotateY(540deg) rotateZ(270deg) scale(1.2); }
+    100% { transform: rotateX(1440deg) rotateY(720deg) rotateZ(360deg) scale(1); }
+}
+
+#dice-anticipation {
+    color: #ffd700;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    animation: anticipation-glow 2s ease-in-out infinite;
+}
+
+@keyframes anticipation-glow {
+    0%, 100% { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); }
+    50% { text-shadow: 0 0 20px #ffd700, 2px 2px 4px rgba(0, 0, 0, 0.5); }
+}
+
+#roll-button {
+    padding: 20px 40px;
+    font-size: 1.5em;
+    background: linear-gradient(45deg, #ff6b6b, #ffa500, #ffaa00);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+    animation: button-pulse 2s ease-in-out infinite;
+}
+
+@keyframes button-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+#roll-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 15px 35px rgba(255, 107, 107, 0.6);
+}
+
+#roll-button:disabled {
+    background: #666;
+    cursor: not-allowed;
+    transform: none;
+    animation: none;
+}
+
+#dice-result {
+    margin-top: 20px;
+    font-size: 2em;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+#dice-result.visible {
+    opacity: 1;
+    animation: result-celebration 1s ease-out;
+}
+
+@keyframes result-celebration {
+    0% { transform: scale(0.5); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* 【改良】プレイヤー情報を大幅に拡大・見やすく */
+#player-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.player-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 25px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 3px solid transparent;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.player-card.active {
+    border: 4px solid #ff6b6b;
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #fff, #f0f8ff);
+    animation: active-card-glow 2s ease-in-out infinite;
+}
+
+@keyframes active-card-glow {
+    0%, 100% { box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1); }
+    50% { box-shadow: 0 10px 40px rgba(255, 107, 107, 0.6); }
+}
+
+.player-avatar {
+    font-size: 4em;
+    margin-bottom: 15px;
+    animation: avatar-idle 2s ease-in-out infinite;
+}
+
+@keyframes avatar-idle {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.player-name {
+    font-size: 2em;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.player-position {
+    font-size: 1.3em;
+    color: #666;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.player-status {
+    font-size: 1.1em;
+    color: #4a90e2;
+    font-weight: bold;
+    padding: 5px 15px;
+    background: #e8f4f8;
+    border-radius: 15px;
+}
+
+/* イベントログ */
+#event-log {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px;
+    border-radius: 15px;
+    margin-top: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+#event-log h3 {
+    margin-bottom: 15px;
+    color: #4a4a4a;
+}
+
+#log-content {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.log-entry {
+    padding: 8px;
+    margin-bottom: 5px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    border-left: 4px solid #667eea;
+    animation: slide-in 0.3s ease-out;
+}
+
+@keyframes slide-in {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* モーダル */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 40px;
+    border-radius: 20px;
+    width: 80%;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: modal-appear 0.5s ease-out;
+}
+
+@keyframes modal-appear {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+#winner-message {
+    font-size: 2em;
+    margin-bottom: 20px;
+    color: #4a4a4a;
+}
+
+#restart-button {
+    padding: 15px 30px;
+    font-size: 1.2em;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#restart-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* 画面中央でのギミック演出 */
+#animation-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#animation-overlay.active {
+    opacity: 1;
+}
+
+#special-effect {
+    font-size: 20em;
+    transform: scale(0);
+    transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#animation-overlay.active #special-effect {
+    transform: scale(1);
+}
+
+/* 画面中央での豪華なゴール演出 */
+#goal-celebration {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2000;
+    overflow: hidden;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+#goal-celebration.active {
+    display: flex;
+}
+
+.goal-message {
+    color: white;
+    font-size: 5em;
+    font-weight: bold;
+    text-shadow: 0 0 20px #ff00ff, 0 0 30px #ffff00;
+    animation: goal-text-animation 3s ease-out forwards;
+    z-index: 2001;
+}
+
+@keyframes goal-text-animation {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #f00;
+    opacity: 0.7;
+    animation: confetti-fall 4s linear forwards;
+}
+
+@keyframes confetti-fall {
+    0% { transform: translateY(-10vh) rotateZ(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotateZ(720deg); opacity: 0; }
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    #board {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        padding: 15px;
+    }
+    
+    .square {
+        width: 65px;
+        height: 65px;
+        font-size: 0.8em;
+    }
+    
+    .player-piece {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+    
+    #game-controls {
+        grid-template-columns: 1fr;
+    }
+    
+    .player-card {
+        min-height: 140px;
+    }
+    
+    .player-avatar {
+        font-size: 3em;
+    }
+    
+    .player-name {
+        font-size: 1.5em;
+    }
+    
+    header h1 {
+        font-size: 2em;
+    }
+    
+    #current-player-name {
+        font-size: 2em;
+    }
+    
+    #current-player-avatar {
+        font-size: 3em;
+    }
+    
+    #dice {
+        font-size: 4em;
+    }
+}
