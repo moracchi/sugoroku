@@ -11,7 +11,7 @@ class SugorokuGame {
         this.currentPlayer = 0;
         this.gameEnded = false;
         
-        // 【改良】ギミックマス設定（22番を21番に移動）
+        // ギミックマス設定
         this.specialSquares = {
             3: { emoji: '🚀', name: 'ロケットダッシュ', action: () => this.warpTo(8), sound: 'rocket' },
             5: { emoji: '😭', name: '忘れ物', action: () => this.backToStart(), sound: 'sad' },
@@ -21,7 +21,7 @@ class SugorokuGame {
             15: { emoji: '🔄', name: '場所交換', action: () => this.swapWithOther(), sound: 'swap' },
             18: { emoji: '💣', name: '爆弾', action: () => this.backTo(10), sound: 'bomb' },
             20: { emoji: '💰', name: 'お小遣いゲット', action: () => this.moveForward(5), sound: 'money' },
-            21: { emoji: '🌀', name: 'ブラックホール', action: () => this.allToStart(), sound: 'blackhole' }, // 22から21へ移動
+            21: { emoji: '🌀', name: 'ブラックホール', action: () => this.allToStart(), sound: 'blackhole' },
             24: { emoji: '⛈️', name: '大嵐', action: () => this.backTo(15), sound: 'storm' },
             28: { emoji: '🎲', name: '運命の分かれ道', action: () => this.fortuneChoice(), sound: 'fortune' },
             29: { emoji: '😱', name: 'ゴール目前で悲劇', action: () => this.backToStart(), sound: 'tragedy' }
@@ -30,7 +30,6 @@ class SugorokuGame {
         // DOM要素のキャッシュ
         this.dom = {
             board: document.getElementById('board'),
-            message: document.getElementById('message'),
             dice: document.getElementById('dice'),
             diceResult: document.getElementById('dice-result'),
             rollButton: document.getElementById('roll-button'),
@@ -121,7 +120,7 @@ class SugorokuGame {
         }
     }
     
-    // 【改良】射幸性を大幅に煽るサイコロ演出
+    // 射幸性を大幅に煽るサイコロ演出
     rollDice() {
         if (this.gameEnded) return;
         
@@ -189,7 +188,7 @@ class SugorokuGame {
         }, 2000); // 2秒間の演出
     }
     
-    // 【新規】興奮度メーターアニメーション
+    // 興奮度メーターアニメーション
     animateExcitementMeter() {
         this.dom.excitementBars.forEach((bar, index) => {
             setTimeout(() => {
@@ -325,36 +324,21 @@ class SugorokuGame {
         this.updateDisplay();
     }
     
-    // 画面表示更新（プレイヤーターンを大きく強調）
+    // 【改良】画面表示更新（コンパクトなターン表示）
     updateDisplay() {
         const currentPlayerObj = this.players[this.currentPlayer];
         
-        // ヘッダーの大きなプレイヤーターン表示を更新
+        // コンパクトなプレイヤーターン表示を更新
         this.dom.currentPlayerAvatar.textContent = currentPlayerObj.color;
         this.dom.currentPlayerName.textContent = currentPlayerObj.name;
-        
-        // メッセージ更新
-        this.dom.message.textContent = `サイコロを振ってね 🎯`;
         
         // プレイヤーカード更新
         this.players.forEach((player, index) => {
             const card = document.getElementById(`player-${['kenchan', 'papa', 'mama'][index]}`);
             const positionSpan = card.querySelector('.player-position span');
-            const statusDiv = card.querySelector('.player-status');
             
             card.classList.toggle('active', index === this.currentPlayer);
             positionSpan.textContent = player.position === 0 ? 'スタート' : `${player.position}マス目`;
-            
-            // プレイヤーステータス更新
-            if (index === this.currentPlayer) {
-                statusDiv.textContent = '🎯 出番です！';
-                statusDiv.style.background = '#ffeb3b';
-                statusDiv.style.color = '#333';
-            } else {
-                statusDiv.textContent = '待機中...';
-                statusDiv.style.background = '#e8f4f8';
-                statusDiv.style.color = '#4a90e2';
-            }
         });
         
         // プレイヤーコマ更新
@@ -419,7 +403,7 @@ class SugorokuGame {
         }
     }
     
-    // 【改良】効果音再生（射幸性を煽る音を追加）
+    // 効果音再生（射幸性を煽る音を追加）
     playSound(type) {
         if (!this.audioContext) return;
         

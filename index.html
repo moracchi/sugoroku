@@ -7,80 +7,82 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- ゲームタイトルとメッセージエリア -->
+    <!-- 【改良】シンプルなヘッダー（不要な表示欄を削除） -->
     <header>
         <h1>🎲 けんちゃんすごろく 🎲</h1>
-        
-        <!-- プレイヤーターン表示を大きく強調 -->
-        <div id="current-player-display">
-            <div id="current-player-avatar">🔴</div>
-            <div id="current-player-name">けんちゃん</div>
-            <div id="current-player-subtitle">のターンです！</div>
-        </div>
-        
-        <div id="message">サイコロを振ってね 🎯</div>
-        
         <!-- BGMコントロールボタン -->
         <div id="bgm-controls">
             <button id="bgm-toggle">🎵 BGM ON/OFF</button>
         </div>
     </header>
 
-    <!-- メインゲームエリア -->
+    <!-- 【改良】PC横長画面向けメインレイアウト -->
     <main>
-        <!-- すごろくボード -->
-        <div id="board">
-            <!-- 30マスのすごろくボードをJavaScriptで動的生成 -->
-        </div>
-
-        <!-- ゲームコントロールエリア -->
-        <div id="game-controls">
-            <!-- 【改良】射幸性を煽るサイコロエリア -->
-            <div id="dice-area">
-                <div id="dice-excitement-meter">
-                    <div class="excitement-bar"></div>
-                    <div class="excitement-bar"></div>
-                    <div class="excitement-bar"></div>
-                    <div class="excitement-bar"></div>
-                    <div class="excitement-bar"></div>
-                </div>
-                <div id="dice-container">
-                    <div id="dice-glow"></div>
-                    <div id="dice">🎲</div>
-                </div>
-                <div id="dice-anticipation">運命のサイコロ！</div>
-                <button id="roll-button">🎰 運命を決める 🎰</button>
-                <div id="dice-result"></div>
-            </div>
-
-            <!-- 【改良】プレイヤー情報を大幅に拡大 -->
-            <div id="player-info">
-                <div class="player-card" id="player-kenchan">
-                    <div class="player-avatar">🔴</div>
-                    <div class="player-name">けんちゃん</div>
-                    <div class="player-position">位置: <span>スタート</span></div>
-                    <div class="player-status">準備OK!</div>
-                </div>
-                <div class="player-card" id="player-papa">
-                    <div class="player-avatar">🔵</div>
-                    <div class="player-name">パパ</div>
-                    <div class="player-position">位置: <span>スタート</span></div>
-                    <div class="player-status">準備OK!</div>
-                </div>
-                <div class="player-card" id="player-mama">
-                    <div class="player-avatar">🟡</div>
-                    <div class="player-name">ママ</div>
-                    <div class="player-position">位置: <span>スタート</span></div>
-                    <div class="player-status">準備OK!</div>
+        <div id="game-layout">
+            <!-- 左サイド：サイコロエリア -->
+            <div id="left-panel">
+                <div id="dice-area">
+                    <div id="dice-excitement-meter">
+                        <div class="excitement-bar"></div>
+                        <div class="excitement-bar"></div>
+                        <div class="excitement-bar"></div>
+                        <div class="excitement-bar"></div>
+                        <div class="excitement-bar"></div>
+                    </div>
+                    <div id="dice-container">
+                        <div id="dice-glow"></div>
+                        <div id="dice">🎲</div>
+                    </div>
+                    <div id="dice-anticipation">運命のサイコロ！</div>
+                    <button id="roll-button">🎰 運命を決める 🎰</button>
+                    <div id="dice-result"></div>
                 </div>
             </div>
-        </div>
 
-        <!-- イベントログ -->
-        <div id="event-log">
-            <h3>📋 イベントログ</h3>
-            <div id="log-content">
-                <div class="log-entry">ゲームを開始しました！</div>
+            <!-- 中央：すごろくボード（大幅拡大） -->
+            <div id="center-panel">
+                <div id="board">
+                    <!-- 30マスのすごろくボードをJavaScriptで動的生成 -->
+                </div>
+            </div>
+
+            <!-- 右サイド：プレイヤー情報とログ -->
+            <div id="right-panel">
+                <!-- 現在のプレイヤー表示（コンパクト版） -->
+                <div id="current-turn-display">
+                    <div id="current-player-info">
+                        <span id="current-player-avatar">🔴</span>
+                        <span id="current-player-name">けんちゃん</span>
+                        <span>のターン</span>
+                    </div>
+                </div>
+
+                <!-- プレイヤー情報 -->
+                <div id="player-info">
+                    <div class="player-card" id="player-kenchan">
+                        <div class="player-avatar">🔴</div>
+                        <div class="player-name">けんちゃん</div>
+                        <div class="player-position">位置: <span>スタート</span></div>
+                    </div>
+                    <div class="player-card" id="player-papa">
+                        <div class="player-avatar">🔵</div>
+                        <div class="player-name">パパ</div>
+                        <div class="player-position">位置: <span>スタート</span></div>
+                    </div>
+                    <div class="player-card" id="player-mama">
+                        <div class="player-avatar">🟡</div>
+                        <div class="player-name">ママ</div>
+                        <div class="player-position">位置: <span>スタート</span></div>
+                    </div>
+                </div>
+
+                <!-- イベントログ -->
+                <div id="event-log">
+                    <h3>📋 イベントログ</h3>
+                    <div id="log-content">
+                        <div class="log-entry">ゲームを開始しました！</div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
