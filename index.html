@@ -7,16 +7,61 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- 【改良】シンプルなヘッダー（不要な表示欄を削除） -->
+    <!-- シンプルなヘッダー -->
     <header>
         <h1>🎲 けんちゃんすごろく 🎲</h1>
         <!-- BGMコントロールボタン -->
         <div id="bgm-controls">
             <button id="bgm-toggle">🎵 BGM ON/OFF</button>
+            <button id="music-test">🎵 音楽テスト</button>
+            <span id="music-status">♪ 音楽準備中...</span>
         </div>
     </header>
 
-    <!-- 【改良】PC横長画面向けメインレイアウト -->
+    <!-- コマ絵文字選択モーダル -->
+    <div id="emoji-selection-modal" class="modal">
+        <div class="modal-content">
+            <h2>🎨 コマの絵文字を選択してください</h2>
+            <div id="emoji-selection-area">
+                <div class="player-emoji-section">
+                    <h3>けんちゃんのコマ</h3>
+                    <div class="emoji-options" data-player="0">
+                        <span class="emoji-option selected" data-emoji="🔴">🔴</span>
+                        <span class="emoji-option" data-emoji="🚗">🚗</span>
+                        <span class="emoji-option" data-emoji="🦖">🦖</span>
+                        <span class="emoji-option" data-emoji="⚽">⚽</span>
+                        <span class="emoji-option" data-emoji="🎮">🎮</span>
+                        <span class="emoji-option" data-emoji="🍎">🍎</span>
+                    </div>
+                </div>
+                <div class="player-emoji-section">
+                    <h3>パパのコマ</h3>
+                    <div class="emoji-options" data-player="1">
+                        <span class="emoji-option selected" data-emoji="🔵">🔵</span>
+                        <span class="emoji-option" data-emoji="🏢">🏢</span>
+                        <span class="emoji-option" data-emoji="📱">📱</span>
+                        <span class="emoji-option" data-emoji="☕">☕</span>
+                        <span class="emoji-option" data-emoji="🎸">🎸</span>
+                        <span class="emoji-option" data-emoji="🚀">🚀</span>
+                    </div>
+                </div>
+                <div class="player-emoji-section">
+                    <h3>ママのコマ</h3>
+                    <div class="emoji-options" data-player="2">
+                        <span class="emoji-option selected" data-emoji="🟡">🟡</span>
+                        <span class="emoji-option" data-emoji="🌸">🌸</span>
+                        <span class="emoji-option" data-emoji="👑">👑</span>
+                        <span class="emoji-option" data-emoji="🎭">🎭</span>
+                        <span class="emoji-option" data-emoji="🦋">🦋</span>
+                        <span class="emoji-option" data-emoji="💎">💎</span>
+                    </div>
+                </div>
+            </div>
+            <button id="start-game-button">🎮 ゲームスタート！</button>
+        </div>
+    </div>
+
+    <!-- PC横長画面向けメインレイアウト -->
     <main>
         <div id="game-layout">
             <!-- 左サイド：サイコロエリア -->
@@ -35,11 +80,12 @@
                     </div>
                     <div id="dice-anticipation">運命のサイコロ！</div>
                     <button id="roll-button">🎰 運命を決める 🎰</button>
+                    <div id="keyboard-hint">💡 スペースキーでも振れます</div>
                     <div id="dice-result"></div>
                 </div>
             </div>
 
-            <!-- 中央：すごろくボード（大幅拡大） -->
+            <!-- 中央：すごろくボード -->
             <div id="center-panel">
                 <div id="board">
                     <!-- 30マスのすごろくボードをJavaScriptで動的生成 -->
@@ -48,7 +94,7 @@
 
             <!-- 右サイド：プレイヤー情報とログ -->
             <div id="right-panel">
-                <!-- 現在のプレイヤー表示（コンパクト版） -->
+                <!-- 現在のプレイヤー表示 -->
                 <div id="current-turn-display">
                     <div id="current-player-info">
                         <span id="current-player-avatar">🔴</span>
@@ -92,6 +138,7 @@
         <div class="modal-content">
             <h2 id="winner-message">🎉 おめでとう！ 🎉</h2>
             <button id="restart-button">もう一度遊ぶ</button>
+            <button id="change-emoji-button">🎨 コマを変更</button>
         </div>
     </div>
 
@@ -100,11 +147,23 @@
         <div id="special-effect"></div>
     </div>
 
-    <!-- 画面中央に表示するゴール演出用オーバーレイ -->
+    <!-- 豪華なゴール演出用オーバーレイ -->
     <div id="goal-celebration"></div>
 
+    <!-- フィナーレ花火演出 -->
+    <div id="fireworks-canvas"></div>
+
     <!-- BGM用Audio要素 -->
-    <audio id="background-music" src="audio/music.mp3" loop preload="auto"></audio>
+    <audio id="background-music-1" preload="metadata" volume="0.3">
+        <source src="audio/music1.mp3" type="audio/mpeg">
+        <source src="audio/music1.ogg" type="audio/ogg">
+        お使いのブラウザは音声再生に対応していません。
+    </audio>
+    <audio id="background-music-2" preload="metadata" volume="0.3">
+        <source src="audio/music2.mp3" type="audio/mpeg">
+        <source src="audio/music2.ogg" type="audio/ogg">
+        お使いのブラウザは音声再生に対応していません。
+    </audio>
 
     <script src="script.js"></script>
 </body>

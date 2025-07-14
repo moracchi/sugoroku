@@ -13,7 +13,7 @@ body {
     overflow-x: hidden;
 }
 
-/* 【改良】シンプルなヘッダー */
+/* シンプルなヘッダー */
 header {
     text-align: center;
     padding: 15px 20px;
@@ -27,6 +27,14 @@ header h1 {
     color: #4a4a4a;
     margin-bottom: 10px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#bgm-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
 #bgm-controls button {
@@ -44,16 +52,127 @@ header h1 {
     transform: scale(1.05);
 }
 
-/* 【改良】PC横長画面向けメインレイアウト */
+#music-test {
+    background: linear-gradient(45deg, #4ecdc4, #44a08d);
+}
+
+/* 音楽ステータス表示 */
+#music-status {
+    font-size: 0.9em;
+    color: #666;
+    font-weight: bold;
+    padding: 5px 10px;
+    background: #f0f8ff;
+    border-radius: 10px;
+    border: 1px solid #87ceeb;
+}
+
+#music-status.playing {
+    color: #228b22;
+    background: #f0fff0;
+    border-color: #90ee90;
+    animation: music-pulse 2s ease-in-out infinite;
+}
+
+#music-status.stopped {
+    color: #dc143c;
+    background: #fff0f0;
+    border-color: #ffb6c1;
+}
+
+#music-status.error {
+    color: #ff4500;
+    background: #ffe4e1;
+    border-color: #ff6347;
+    animation: error-blink 1s ease-in-out infinite;
+}
+
+@keyframes music-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes error-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* コマ絵文字選択モーダル */
+#emoji-selection-modal {
+    display: flex;
+    z-index: 3000;
+}
+
+#emoji-selection-area {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin: 20px 0;
+}
+
+.player-emoji-section h3 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #4a4a4a;
+    font-size: 1.2em;
+}
+
+.emoji-options {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.emoji-option {
+    font-size: 3em;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    border: 3px solid transparent;
+    background: #f8f9fa;
+}
+
+.emoji-option:hover {
+    transform: scale(1.2);
+    background: #e9ecef;
+}
+
+.emoji-option.selected {
+    border: 3px solid #ff6b6b;
+    background: #fff5f5;
+    transform: scale(1.1);
+}
+
+#start-game-button {
+    padding: 15px 30px;
+    font-size: 1.4em;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+#start-game-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* PC横長画面向けメインレイアウト */
 main {
-    max-width: 1600px; /* 横幅を大幅に拡大 */
+    max-width: 1600px;
     margin: 0 auto;
     padding: 0 20px;
 }
 
 #game-layout {
     display: grid;
-    grid-template-columns: 300px 1fr 350px; /* 左300px、中央可変、右350px */
+    grid-template-columns: 300px 1fr 350px;
     gap: 30px;
     min-height: calc(100vh - 120px);
 }
@@ -118,7 +237,7 @@ main {
     50% { background: #ff6b6b; transform: scaleY(1.5); }
 }
 
-/* 【改良】サイコロを大幅に拡大 */
+/* サイコロを大幅に拡大 */
 #dice-container {
     perspective: 1000px;
     margin: 30px 0;
@@ -130,8 +249,8 @@ main {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 180px; /* 120px → 180px */
-    height: 180px; /* 120px → 180px */
+    width: 180px;
+    height: 180px;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(255, 215, 0, 0.3), transparent);
     animation: dice-glow-pulse 2s ease-in-out infinite;
@@ -144,16 +263,16 @@ main {
 }
 
 #dice {
-    font-size: 8em; /* 5em → 8em に大幅拡大 */
-    width: 150px; /* 100px → 150px */
-    height: 150px; /* 100px → 150px */
+    font-size: 8em;
+    width: 150px;
+    height: 150px;
     display: flex;
     justify-content: center;
     align-items: center;
     margin: 0 auto;
     background: linear-gradient(45deg, #ffd700, #ffaa00);
-    border-radius: 25px; /* 20px → 25px */
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4); /* 影を強化 */
+    border-radius: 25px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
     transition: transform 1s ease-out;
     transform-style: preserve-3d;
     z-index: 2;
@@ -193,8 +312,8 @@ main {
 }
 
 #roll-button {
-    padding: 25px 45px; /* パディングを拡大 */
-    font-size: 1.6em; /* フォントサイズを拡大 */
+    padding: 25px 45px;
+    font-size: 1.6em;
     background: linear-gradient(45deg, #ff6b6b, #ffa500, #ffaa00);
     color: white;
     border: none;
@@ -224,9 +343,18 @@ main {
     animation: none;
 }
 
+/* キーボードヒント */
+#keyboard-hint {
+    color: #87ceeb;
+    font-size: 0.9em;
+    margin: 10px 0;
+    font-style: italic;
+    opacity: 0.8;
+}
+
 #dice-result {
     margin-top: 25px;
-    font-size: 2.2em; /* フォントサイズを拡大 */
+    font-size: 2.2em;
     font-weight: bold;
     color: #ffd700;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -245,7 +373,7 @@ main {
     100% { transform: scale(1); }
 }
 
-/* 【改良】中央パネル：すごろくボードを大幅に拡大 */
+/* 中央パネル：すごろくボードを大幅に拡大 */
 #center-panel {
     display: flex;
     justify-content: center;
@@ -255,26 +383,25 @@ main {
 #board {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 18px; /* 12px → 18px */
+    gap: 18px;
     background: rgba(255, 255, 255, 0.95);
-    padding: 40px; /* 25px → 40px */
+    padding: 40px;
     border-radius: 20px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-    max-width: none; /* max-widthを削除して大きく表示 */
     width: 100%;
 }
 
 .square {
-    width: 120px; /* 90px → 120px に大幅拡大 */
-    height: 120px; /* 90px → 120px に大幅拡大 */
-    border: 4px solid #333; /* 3px → 4px */
+    width: 120px;
+    height: 120px;
+    border: 4px solid #333;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    font-size: 1.1em; /* フォントサイズを拡大 */
-    border-radius: 15px; /* 12px → 15px */
+    font-size: 1.1em;
+    border-radius: 15px;
     position: relative;
     transition: all 0.3s ease;
     overflow: visible;
@@ -316,30 +443,43 @@ main {
     100% { transform: scale(1); }
 }
 
-/* プレイヤーコマ（ボードの拡大に合わせて調整） */
+/* プレイヤーコマの移動アニメーション */
 .player-pieces {
     position: absolute;
-    bottom: -30px; /* -25px → -30px */
+    bottom: -30px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 10px; /* 8px → 10px */
+    gap: 10px;
     z-index: 10;
 }
 
 .player-piece {
-    width: 60px; /* 50px → 60px */
-    height: 60px; /* 50px → 60px */
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    border: 5px solid #333; /* 4px → 5px */
-    font-size: 32px; /* 28px → 32px */
+    border: 5px solid #333;
+    font-size: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: white;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-    transition: all 0.3s ease;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     animation: piece-bounce 2s infinite;
+}
+
+/* 移動アニメーション */
+.player-piece.moving {
+    animation: piece-move 1s ease-in-out;
+    transform: scale(1.3);
+    z-index: 100;
+}
+
+@keyframes piece-move {
+    0% { transform: scale(1.3) translateY(0px); }
+    50% { transform: scale(1.5) translateY(-30px); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6); }
+    100% { transform: scale(1.3) translateY(0px); }
 }
 
 @keyframes piece-bounce {
@@ -382,7 +522,7 @@ main {
     gap: 20px;
 }
 
-/* 【改良】コンパクトな現在のターン表示 */
+/* コンパクトな現在のターン表示 */
 #current-turn-display {
     background: linear-gradient(135deg, #ff6b6b, #ffa500);
     padding: 15px;
@@ -484,7 +624,7 @@ main {
 }
 
 #log-content {
-    max-height: 300px; /* 200px → 300px */
+    max-height: 300px;
     overflow-y: auto;
 }
 
@@ -513,15 +653,16 @@ main {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
 }
 
 .modal-content {
     background-color: white;
-    margin: 15% auto;
     padding: 40px;
     border-radius: 20px;
-    width: 80%;
-    max-width: 500px;
+    width: 90%;
+    max-width: 600px;
     text-align: center;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     animation: modal-appear 0.5s ease-out;
@@ -538,7 +679,7 @@ main {
     color: #4a4a4a;
 }
 
-#restart-button {
+#restart-button, #change-emoji-button {
     padding: 15px 30px;
     font-size: 1.2em;
     background: linear-gradient(45deg, #667eea, #764ba2);
@@ -547,9 +688,10 @@ main {
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.3s ease;
+    margin: 0 10px;
 }
 
-#restart-button:hover {
+#restart-button:hover, #change-emoji-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
@@ -584,7 +726,7 @@ main {
     transform: scale(1);
 }
 
-/* 画面中央での豪華なゴール演出 */
+/* 豪華なゴール演出 */
 #goal-celebration {
     position: fixed;
     top: 0;
@@ -607,15 +749,53 @@ main {
     color: white;
     font-size: 5em;
     font-weight: bold;
-    text-shadow: 0 0 20px #ff00ff, 0 0 30px #ffff00;
+    text-shadow: 0 0 20px #ff00ff, 0 0 30px #ffff00, 0 0 40px #00ff00;
     animation: goal-text-animation 3s ease-out forwards;
     z-index: 2001;
+    position: relative;
 }
 
 @keyframes goal-text-animation {
-    0% { transform: scale(0); opacity: 0; }
-    50% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(1); opacity: 1; }
+    0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+    50% { transform: scale(1.3) rotate(0deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* フィナーレ花火演出 */
+#fireworks-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2001;
+    display: none;
+}
+
+#fireworks-canvas.active {
+    display: block;
+}
+
+.firework {
+    position: absolute;
+    border-radius: 50%;
+    animation: firework-explosion 2s ease-out forwards;
+}
+
+@keyframes firework-explosion {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(3);
+        opacity: 0;
+    }
 }
 
 .confetti {
@@ -632,7 +812,7 @@ main {
     100% { transform: translateY(110vh) rotateZ(720deg); opacity: 0; }
 }
 
-/* レスポンシブ対応（タブレット以下） */
+/* レスポンシブ対応 */
 @media (max-width: 1200px) {
     #game-layout {
         grid-template-columns: 1fr;
