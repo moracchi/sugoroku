@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>けんちゃんすごろく</title>
+    <title>けんちゃんすごろく - ドキドキ究極版</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- シンプルなヘッダー -->
     <header>
-        <h1>🎲 けんちゃんすごろく 🎲</h1>
+        <h1>🎲 けんちゃんすごろく - ドキドキ究極版 🎲</h1>
         <!-- BGMコントロールボタン -->
         <div id="bgm-controls">
             <button id="bgm-toggle">🎵 BGM ON/OFF</button>
             <button id="music-test">🎵 音楽テスト</button>
+            <button id="sound-test">🔊 効果音テスト</button>
             <span id="music-status">♪ 音楽準備中...</span>
         </div>
     </header>
@@ -147,6 +148,34 @@
         <div id="special-effect"></div>
     </div>
 
+    <!-- クリティカルヒット演出用オーバーレイ -->
+    <div id="critical-hit-overlay">
+        <div id="critical-hit-effect">
+            <div id="critical-hit-text">🎯 CRITICAL HIT! 🎯</div>
+            <div id="critical-hit-subtext">完璧なサイコロ！</div>
+        </div>
+        <div id="critical-hit-rays"></div>
+    </div>
+
+    <!-- ミステリーボックス演出用オーバーレイ -->
+    <div id="mystery-box-overlay">
+        <div id="mystery-box-animation">
+            <div id="mystery-box">🎁</div>
+            <div id="mystery-box-text">ミステリーボックス！</div>
+            <div id="mystery-box-roulette">
+                <div class="roulette-item">🚀</div>
+                <div class="roulette-item">😭</div>
+                <div class="roulette-item">✨</div>
+                <div class="roulette-item">😴</div>
+                <div class="roulette-item">💨</div>
+                <div class="roulette-item">🔄</div>
+                <div class="roulette-item">💣</div>
+                <div class="roulette-item">💰</div>
+            </div>
+            <div id="mystery-result-text"></div>
+        </div>
+    </div>
+
     <!-- 豪華なゴール演出用オーバーレイ -->
     <div id="goal-celebration"></div>
 
@@ -163,6 +192,77 @@
         <source src="audio/music2.mp3" type="audio/mpeg">
         <source src="audio/music2.ogg" type="audio/ogg">
         お使いのブラウザは音声再生に対応していません。
+    </audio>
+
+    <!-- 【新機能】効果音用Audio要素 -->
+    <audio id="sound-anticipation" preload="auto" volume="0.5">
+        <source src="audio/effects/anticipation.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-critical-hit" preload="auto" volume="0.7">
+        <source src="audio/effects/critical-hit.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-high-roll" preload="auto" volume="0.6">
+        <source src="audio/effects/high-roll.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-low-roll" preload="auto" volume="0.5">
+        <source src="audio/effects/low-roll.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-normal-roll" preload="auto" volume="0.5">
+        <source src="audio/effects/normal-roll.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-double-bonus" preload="auto" volume="0.6">
+        <source src="audio/effects/double-bonus.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-move" preload="auto" volume="0.4">
+        <source src="audio/effects/move.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-skip" preload="auto" volume="0.5">
+        <source src="audio/effects/skip.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-win" preload="auto" volume="0.8">
+        <source src="audio/effects/win.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-firework" preload="auto" volume="0.6">
+        <source src="audio/effects/firework.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-mystery-box" preload="auto" volume="0.6">
+        <source src="audio/effects/mystery-box.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-rocket" preload="auto" volume="0.6">
+        <source src="audio/effects/rocket.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-sad" preload="auto" volume="0.5">
+        <source src="audio/effects/sad.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-lucky" preload="auto" volume="0.6">
+        <source src="audio/effects/lucky.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-sleep" preload="auto" volume="0.5">
+        <source src="audio/effects/sleep.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-wind" preload="auto" volume="0.5">
+        <source src="audio/effects/wind.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-swap" preload="auto" volume="0.5">
+        <source src="audio/effects/swap.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-bomb" preload="auto" volume="0.7">
+        <source src="audio/effects/bomb.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-money" preload="auto" volume="0.6">
+        <source src="audio/effects/money.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-blackhole" preload="auto" volume="0.6">
+        <source src="audio/effects/blackhole.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-storm" preload="auto" volume="0.6">
+        <source src="audio/effects/storm.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-fortune" preload="auto" volume="0.6">
+        <source src="audio/effects/fortune.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-tragedy" preload="auto" volume="0.6">
+        <source src="audio/effects/tragedy.mp3" type="audio/mpeg">
     </audio>
 
     <script src="script.js"></script>

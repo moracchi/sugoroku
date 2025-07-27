@@ -1,4 +1,4 @@
-// 音楽修正版 - ゲーム状態管理
+// 【効果音対応版】音楽修正版 - ゲーム状態管理
 class SugorokuGame {
     constructor() {
         // プレイヤー設定
@@ -13,8 +13,13 @@ class SugorokuGame {
         this.gameStarted = false;
         this.currentMusic = 1;
         this.musicEnabled = true;
+        this.soundEnabled = true; // 効果音有効フラグ
         this.userInteracted = false;
         this.audioInitialized = false;
+        this.soundEffectsLoaded = 0; // 読み込まれた効果音数
+        
+        // ミステリーボックスマスの配置
+        this.mysteryBoxPositions = [6, 11, 16, 22, 27];
         
         // ギミックマス設定
         this.specialSquares = {
@@ -32,6 +37,25 @@ class SugorokuGame {
             29: { emoji: '😱', name: 'ゴール目前で悲劇', action: () => this.backToStart(), sound: 'tragedy' }
         };
         
+        // ミステリーボックスで発動可能なギミック配列
+        this.mysteryGimmicks = [
+            { emoji: '🚀', name: 'ロケットダッシュ', action: () => this.warpTo(8), sound: 'rocket' },
+            { emoji: '😭', name: '忘れ物', action: () => this.backToStart(), sound: 'sad' },
+            { emoji: '✨', name: 'ラッキーセブン', action: () => this.rollAgain(), sound: 'lucky' },
+            { emoji: '😴', name: 'お昼寝タイム', action: () => this.skipNextTurn(), sound: 'sleep' },
+            { emoji: '💨', name: '追い風', action: () => this.doubleNextRoll(), sound: 'wind' },
+            { emoji: '🔄', name: '場所交換', action: () => this.swapWithOther(), sound: 'swap' },
+            { emoji: '💣', name: '爆弾', action: () => this.backTo(10), sound: 'bomb' },
+            { emoji: '💰', name: 'お小遣いゲット', action: () => this.moveForward(5), sound: 'money' }
+        ];
+        
+        // 【新機能】効果音要素名のリスト
+        this.soundEffects = [
+            'anticipation', 'critical-hit', 'high-roll', 'low-roll', 'normal-roll', 'double-bonus',
+            'move', 'skip', 'win', 'firework', 'mystery-box', 'rocket', 'sad', 'lucky', 'sleep',
+            'wind', 'swap', 'bomb', 'money', 'blackhole', 'storm', 'fortune', 'tragedy'
+        ];
+        
         // DOM要素のキャッシュ
         this.dom = {
             board: document.getElementById('board'),
@@ -40,6 +64,7 @@ class SugorokuGame {
             rollButton: document.getElementById('roll-button'),
             bgmToggleButton: document.getElementById('bgm-toggle'),
             musicTestButton: document.getElementById('music-test'),
+            soundTestButton: document.getElementById('sound-test'),
             musicStatus: document.getElementById('music-status'),
             backgroundMusic1: document.getElementById('background-music-1'),
             backgroundMusic2: document.getElementById('background-music-2'),
@@ -56,11 +81,16 @@ class SugorokuGame {
             emojiModal: document.getElementById('emoji-selection-modal'),
             startGameButton: document.getElementById('start-game-button'),
             restartButton: document.getElementById('restart-button'),
-            changeEmojiButton: document.getElementById('change-emoji-button')
+            changeEmojiButton: document.getElementById('change-emoji-button'),
+            criticalHitOverlay: document.getElementById('critical-hit-overlay'),
+            criticalHitText: document.getElementById('critical-hit-text'),
+            criticalHitSubtext: document.getElementById('critical-hit-subtext'),
+            mysteryBoxOverlay: document.getElementById('mystery-box-overlay'),
+            mysteryBoxAnimation: document.getElementById('mystery-box-animation'),
+            mysteryBoxRoulette: document.getElementById('mystery-box-roulette'),
+            mysteryResultText: document.getElementById('mystery-result-text')
         };
         
-        // 音声コンテキスト初期化
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         this.init();
     }
     
@@ -69,6 +99,7 @@ class SugorokuGame {
         this.bindEvents();
         this.bindEmojiSelection();
         this.setupAudioElements();
+        this.setupSoundEffects(); // 【新機能】効果音セットアップ
         this.showEmojiSelection();
         this.updateMusicStatus('ready');
     }
@@ -92,6 +123,29 @@ class SugorokuGame {
                 audio.addEventListener('error', (e) => {
                     console.error(`${audio.id} 再生エラー:`, e);
                     this.updateMusicStatus('error');
+                });
+            }
+        });
+    }
+    
+    // 【新機能】効果音要素のセットアップ
+    setupSoundEffects() {
+        this.soundEffects.forEach(soundName => {
+            const audio = document.getElementById(`sound-${soundName}`);
+            if (audio) {
+                audio.addEventListener('canplaythrough', () => {
+                    this.soundEffectsLoaded++;
+                    console.log(`効果音 ${soundName} 読み込み完了 (${this.soundEffectsLoaded}/${this.soundEffects.length})`);
+                    
+                    // すべての効果音が読み込まれた場合
+                    if (this.soundEffectsLoaded >= this.soundEffects.length) {
+                        console.log('すべての効果音の読み込みが完了しました');
+                        this.addLog('🔊 効果音の読み込みが完了しました！');
+                    }
+                });
+                
+                audio.addEventListener('error', (e) => {
+                    console.error(`効果音 ${soundName} 読み込みエラー:`, e);
                 });
             }
         });
@@ -143,17 +197,12 @@ class SugorokuGame {
                 
                 this.userInteracted = true;
                 
-                // 同じプレイヤーの他の選択を解除
                 e.target.closest('.emoji-options').querySelectorAll('.emoji-option').forEach(opt => {
                     opt.classList.remove('selected');
                 });
                 
-                // 選択された絵文字をマーク
                 e.target.classList.add('selected');
-                
-                // プレイヤーデータを更新
                 this.players[playerIndex].color = emoji;
-                
                 this.playSound('normal-roll');
             });
         });
@@ -177,7 +226,7 @@ class SugorokuGame {
         this.gameStarted = true;
         this.createBoard();
         this.updateDisplay();
-        this.addLog('ゲームを開始しました！');
+        this.addLog('🎉 ドキドキ究極版ゲームを開始しました！');
         
         // 音楽開始
         setTimeout(() => {
@@ -201,6 +250,9 @@ class SugorokuGame {
             } else if (i === 30) {
                 square.classList.add('goal');
                 square.innerHTML = '<div>ゴール</div><div>🏆</div>';
+            } else if (this.mysteryBoxPositions.includes(i)) {
+                square.classList.add('mystery');
+                square.innerHTML = `<div>${i}</div><div>🎁</div>`;
             } else if (this.specialSquares[i]) {
                 square.classList.add('special');
                 const special = this.specialSquares[i];
@@ -210,7 +262,6 @@ class SugorokuGame {
                 square.innerHTML = `<div>${i}</div>`;
             }
             
-            // プレイヤーコマ表示用div追加
             const playerPieces = document.createElement('div');
             playerPieces.className = 'player-pieces';
             square.appendChild(playerPieces);
@@ -254,6 +305,12 @@ class SugorokuGame {
             this.testMusic();
         });
         
+        // 【新機能】効果音テストボタン
+        this.dom.soundTestButton.addEventListener('click', () => {
+            this.userInteracted = true;
+            this.testSoundEffects();
+        });
+        
         // ユーザーインタラクション検知
         ['click', 'touchstart', 'keydown'].forEach(eventType => {
             document.addEventListener(eventType, () => {
@@ -284,7 +341,7 @@ class SugorokuGame {
                         this.dom.backgroundMusic1.pause();
                         this.dom.backgroundMusic1.currentTime = 0;
                         this.updateMusicStatus('ready');
-                    }, 3000); // 3秒間だけ再生
+                    }, 3000);
                 }).catch(error => {
                     console.error('音楽テスト失敗:', error);
                     this.updateMusicStatus('error');
@@ -295,6 +352,35 @@ class SugorokuGame {
             this.updateMusicStatus('error');
         }
     }
+    
+    // 【新機能】効果音テスト機能
+    testSoundEffects() {
+        if (!this.userInteracted) {
+            alert('まず何かボタンをクリックしてから効果音をテストしてください。');
+            return;
+        }
+        
+        console.log('効果音テスト開始');
+        this.addLog('🔊 効果音テストを開始します...');
+        
+        // 代表的な効果音を順次再生
+        const testSounds = ['normal-roll', 'rocket', 'bomb', 'lucky', 'win'];
+        let index = 0;
+        
+        const playNextSound = () => {
+            if (index < testSounds.length) {
+                const soundName = testSounds[index];
+                this.addLog(`🔊 テスト中: ${soundName}`);
+                this.playSound(soundName);
+                index++;
+                setTimeout(playNextSound, 1500); // 1.5秒間隔で再生
+            } else {
+                this.addLog('🔊 効果音テスト完了！');
+            }
+        };
+        
+        playNextSound();
+    }
 
     // 音楽切り替え機能
     checkMusicChange() {
@@ -302,21 +388,17 @@ class SugorokuGame {
             return;
         }
         
-        // 24マス以降にいるプレイヤーがいるかチェック
         const anyPlayerIn24Plus = this.players.some(player => player.position >= 24);
         
         if (anyPlayerIn24Plus && this.currentMusic === 1) {
-            // 音楽2に切り替え
             this.currentMusic = 2;
             this.switchToMusic2();
             this.addLog('🎵 BGMが終盤モードに変わりました！');
         } else if (!anyPlayerIn24Plus && this.currentMusic === 2) {
-            // 音楽1に戻す
             this.currentMusic = 1;
             this.switchToMusic1();
             this.addLog('🎵 BGMが通常モードに戻りました。');
         } else if (this.currentMusic === 1 && !anyPlayerIn24Plus) {
-            // 初回または通常時の音楽1開始
             this.switchToMusic1();
         }
     }
@@ -326,13 +408,11 @@ class SugorokuGame {
         if (!this.userInteracted || !this.musicEnabled) return;
         
         try {
-            // 音楽2を停止
             if (this.dom.backgroundMusic2) {
                 this.dom.backgroundMusic2.pause();
                 this.dom.backgroundMusic2.currentTime = 0;
             }
             
-            // 音楽1を再生
             if (this.dom.backgroundMusic1) {
                 const playPromise = this.dom.backgroundMusic1.play();
                 if (playPromise !== undefined) {
@@ -356,13 +436,11 @@ class SugorokuGame {
         if (!this.userInteracted || !this.musicEnabled) return;
         
         try {
-            // 音楽1を停止
             if (this.dom.backgroundMusic1) {
                 this.dom.backgroundMusic1.pause();
                 this.dom.backgroundMusic1.currentTime = 0;
             }
             
-            // 音楽2を再生
             if (this.dom.backgroundMusic2) {
                 const playPromise = this.dom.backgroundMusic2.play();
                 if (playPromise !== undefined) {
@@ -392,27 +470,117 @@ class SugorokuGame {
         const music2Playing = this.dom.backgroundMusic2 && !this.dom.backgroundMusic2.paused;
         
         if (music1Playing || music2Playing) {
-            // BGM停止
             this.musicEnabled = false;
             if (this.dom.backgroundMusic1) this.dom.backgroundMusic1.pause();
             if (this.dom.backgroundMusic2) this.dom.backgroundMusic2.pause();
             this.dom.bgmToggleButton.textContent = '🔇 BGM OFF';
             this.updateMusicStatus('stopped');
         } else {
-            // BGM再開
             this.musicEnabled = true;
             this.dom.bgmToggleButton.textContent = '🎵 BGM ON/OFF';
             this.checkMusicChange();
         }
     }
     
-    // 射幸性を大幅に煽るサイコロ演出
+    // 【改良】効果音再生機能（mp3ファイル対応）
+    playSound(soundType) {
+        if (!this.soundEnabled || !this.userInteracted) {
+            return;
+        }
+        
+        const audio = document.getElementById(`sound-${soundType}`);
+        if (audio) {
+            // 音声を最初から再生するためにリセット
+            audio.currentTime = 0;
+            
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    console.log(`効果音 ${soundType} 再生成功`);
+                }).catch(error => {
+                    console.error(`効果音 ${soundType} 再生失敗:`, error);
+                    // フォールバック：Web Audio APIの合成音を再生
+                    this.playSyntheticSound(soundType);
+                });
+            }
+        } else {
+            console.warn(`効果音 ${soundType} が見つかりません。合成音で代替します。`);
+            // フォールバック：Web Audio APIの合成音を再生
+            this.playSyntheticSound(soundType);
+        }
+    }
+    
+    // フォールバック用の合成音再生
+    playSyntheticSound(type) {
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        const sounds = {
+            'anticipation': { freqs: [440, 523, 659, 784], duration: 1.5, type: 'triangle', vol: 0.15 },
+            'critical-hit': { freqs: [1047, 1319, 1568, 2093], duration: 1.0, type: 'sawtooth', vol: 0.3 },
+            'high-roll': { freqs: [784, 988, 1175, 1397], duration: 1.0, type: 'sine', vol: 0.2 },
+            'low-roll': { freqs: [220, 175, 147], duration: 0.8, type: 'triangle', vol: 0.1 },
+            'normal-roll': { freq: 440, duration: 0.3, type: 'square', vol: 0.1 },
+            'double-bonus': { freqs: [659, 784, 988, 1175], duration: 1.2, type: 'sawtooth', vol: 0.2 },
+            'move': { freq: 523, duration: 0.2, type: 'sine', vol: 0.1 },
+            'skip': { freq: 349, duration: 0.25, type: 'triangle', vol: 0.1 },
+            'win': { freqs: [523, 659, 784, 1047, 1319], duration: 3.0, type: 'triangle', vol: 0.25 },
+            'firework': { freqs: [1047, 1319, 1568, 2093], duration: 0.8, type: 'sawtooth', vol: 0.2 },
+            'mystery-box': { freqs: [523, 659, 784, 523], duration: 1.0, type: 'square', vol: 0.15 },
+            'rocket': { freqs: [440, 880, 1320], duration: 0.8, type: 'sawtooth', vol: 0.15 },
+            'sad': { freqs: [440, 220, 110], duration: 0.8, type: 'sine', vol: 0.1 },
+            'lucky': { freqs: [523, 659, 784, 1047], duration: 1.0, type: 'triangle', vol: 0.15 },
+            'sleep': { freqs: [440, 220], duration: 1.2, type: 'sine', vol: 0.1 },
+            'wind': { freqs: [1000, 1500, 2000], duration: 0.7, type: 'sawtooth', vol: 0.1 },
+            'swap': { freqs: [440, 880, 440], duration: 0.5, type: 'square', vol: 0.1 },
+            'bomb': { freq: 100, duration: 0.4, type: 'sawtooth', vol: 0.2 },
+            'money': { freqs: [659, 784, 988], duration: 0.6, type: 'sine', vol: 0.15 },
+            'blackhole': { freqs: [880, 440, 220, 110], duration: 1.0, type: 'triangle', vol: 0.1 },
+            'storm': { freqs: [300, 200, 400, 150], duration: 0.8, type: 'sawtooth', vol: 0.1 },
+            'fortune': { freqs: [523, 440, 659, 784], duration: 1.2, type: 'square', vol: 0.1 },
+            'tragedy': { freqs: [440, 220, 110, 55], duration: 1.0, type: 'sawtooth', vol: 0.1 }
+        };
+        
+        const sound = sounds[type];
+        if (!sound) return;
+
+        if (sound.freqs) {
+            const noteDuration = sound.duration / sound.freqs.length;
+            sound.freqs.forEach((freq, index) => {
+                setTimeout(() => this.createTone(freq, noteDuration * 0.9, sound.type, sound.vol), index * noteDuration * 1000);
+            });
+        } else {
+            this.createTone(sound.freq, sound.duration, sound.type, sound.vol);
+        }
+    }
+    
+    // 合成音生成
+    createTone(freq, dur, type, vol = 0.1) {
+        if (!this.audioContext) return;
+        
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.audioContext.destination);
+        
+        osc.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+        osc.type = type || 'sine';
+        
+        gain.gain.setValueAtTime(vol, this.audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + dur);
+        
+        osc.start();
+        osc.stop(this.audioContext.currentTime + dur);
+    }
+    
+    // サイコロ演出（クリティカルヒット追加）
     rollDice() {
         if (this.gameEnded || !this.gameStarted) return;
         
         const player = this.players[this.currentPlayer];
         
-        // スキップチェック
         if (player.skipNext) {
             player.skipNext = false;
             this.addLog(`${player.name}は1回休みです。`);
@@ -421,27 +589,25 @@ class SugorokuGame {
             return;
         }
         
-        // ボタンを無効化し、期待感を演出
         this.dom.rollButton.disabled = true;
         this.dom.rollButton.textContent = '🎰 運命が決まる... 🎰';
         this.dom.diceResult.classList.remove('visible');
         
-        // 興奮度メーターアニメーション
         this.animateExcitementMeter();
-        
-        // 射幸性を煽る演出音
         this.playSound('anticipation');
         
-        // サイコロを超絶回転
-        this.dom.dice.classList.add('is-rolling');
+        let diceValue = Math.floor(Math.random() * 6) + 1;
         
-        // 2秒間の期待感演出
+        // クリティカルヒット判定（6が出た場合）
+        if (diceValue === 6) {
+            this.dom.dice.classList.add('critical-hit');
+        } else {
+            this.dom.dice.classList.add('is-rolling');
+        }
+        
         setTimeout(() => {
-            this.dom.dice.classList.remove('is-rolling');
+            this.dom.dice.classList.remove('is-rolling', 'critical-hit');
             
-            let diceValue = Math.floor(Math.random() * 6) + 1;
-            
-            // 倍ロール効果
             if (player.doubleNext) {
                 diceValue *= 2;
                 player.doubleNext = false;
@@ -449,13 +615,15 @@ class SugorokuGame {
                 this.playSound('double-bonus');
             }
             
-            // 結果表示
-            this.dom.dice.textContent = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'][diceValue - 1];
+            this.dom.dice.textContent = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'][Math.min(diceValue - 1, 5)];
             this.dom.diceResult.textContent = `🎉 ${diceValue}が出ました！ 🎉`;
             this.dom.diceResult.classList.add('visible');
             
-            // 結果に応じた演出音
-            if (diceValue >= 5) {
+            // クリティカルヒット演出
+            if (diceValue >= 6) {
+                this.showCriticalHitEffect();
+                this.playSound('critical-hit');
+            } else if (diceValue >= 5) {
                 this.playSound('high-roll');
             } else if (diceValue === 1) {
                 this.playSound('low-roll');
@@ -463,15 +631,23 @@ class SugorokuGame {
                 this.playSound('normal-roll');
             }
             
-            // ボタンを元に戻す
             this.dom.rollButton.textContent = '🎰 運命を決める 🎰';
             
             setTimeout(() => {
                 this.movePlayer(diceValue);
                 this.dom.rollButton.disabled = false;
-            }, 1500);
+            }, diceValue >= 6 ? 3000 : 1500);
 
         }, 2000);
+    }
+    
+    // クリティカルヒット演出
+    showCriticalHitEffect() {
+        this.dom.criticalHitOverlay.classList.add('active');
+        
+        setTimeout(() => {
+            this.dom.criticalHitOverlay.classList.remove('active');
+        }, 3000);
     }
     
     // 興奮度メーターアニメーション
@@ -491,13 +667,12 @@ class SugorokuGame {
         }, 2000);
     }
     
-    // プレイヤー移動（アニメーション付き）
+    // プレイヤー移動（ミステリーボックス対応）
     movePlayer(steps) {
         const player = this.players[this.currentPlayer];
         const oldPosition = player.position;
         let newPosition = oldPosition + steps;
         
-        // ぴったりゴールルール
         if (newPosition > 30) {
             newPosition = 30 - (newPosition - 30);
         }
@@ -505,19 +680,17 @@ class SugorokuGame {
         player.position = newPosition;
         this.addLog(`${player.name}が${steps}マス進んで${newPosition}マス目に移動しました。`);
         
-        // プレイヤーコマ移動アニメーション
         this.animatePlayerMovement(oldPosition, newPosition, () => {
-            // 音楽切り替えチェック
             this.checkMusicChange();
             
-            // ゴールチェック
             if (newPosition === 30) {
                 this.endGame(player.name);
                 return;
             }
             
-            // ギミックチェック
-            if (this.specialSquares[newPosition]) {
+            if (this.mysteryBoxPositions.includes(newPosition)) {
+                this.activateMysteryBox(newPosition);
+            } else if (this.specialSquares[newPosition]) {
                 this.activateSpecial(newPosition);
             } else {
                 this.nextPlayer();
@@ -532,7 +705,6 @@ class SugorokuGame {
         const playerIndex = this.currentPlayer;
         const playerClass = ['kenchan', 'papa', 'mama'][playerIndex];
         
-        // 古い位置のコマを取得
         const oldSquare = document.getElementById(`square-${from}`);
         const oldPiece = oldSquare?.querySelector(`.player-piece.${playerClass}`);
         
@@ -540,10 +712,8 @@ class SugorokuGame {
             oldPiece.classList.add('moving');
         }
         
-        // 位置を更新
         this.updatePlayerPositions();
         
-        // 移動先のマスにアニメーション効果
         const targetSquare = document.getElementById(`square-${to}`);
         if (targetSquare) {
             targetSquare.style.transform = 'scale(1.2)';
@@ -556,7 +726,6 @@ class SugorokuGame {
         }
         
         setTimeout(() => {
-            // アニメーション終了処理
             if (targetSquare) {
                 targetSquare.style.transform = '';
                 targetSquare.style.boxShadow = '';
@@ -575,19 +744,69 @@ class SugorokuGame {
         }, 1000);
     }
     
+    // ミステリーボックス演出
+    activateMysteryBox(position) {
+        const player = this.players[this.currentPlayer];
+        
+        this.addLog(`${player.name}がミステリーボックスに止まりました！ 🎁`);
+        this.playSound('mystery-box');
+        
+        this.dom.mysteryBoxOverlay.classList.add('active');
+        
+        setTimeout(() => {
+            this.startMysteryRoulette();
+        }, 2000);
+    }
+    
+    // ミステリーボックスルーレット演出
+    startMysteryRoulette() {
+        this.dom.mysteryBoxRoulette.classList.add('active');
+        
+        const rouletteItems = document.querySelectorAll('.roulette-item');
+        let currentIndex = 0;
+        let spinCount = 0;
+        const maxSpins = 20 + Math.floor(Math.random() * 10);
+        
+        const spinInterval = setInterval(() => {
+            rouletteItems.forEach(item => item.classList.remove('selected'));
+            rouletteItems[currentIndex].classList.add('selected');
+            currentIndex = (currentIndex + 1) % rouletteItems.length;
+            spinCount++;
+            
+            if (spinCount >= maxSpins) {
+                clearInterval(spinInterval);
+                
+                const finalIndex = (currentIndex - 1 + rouletteItems.length) % rouletteItems.length;
+                const selectedGimmick = this.mysteryGimmicks[finalIndex];
+                
+                this.dom.mysteryResultText.textContent = `${selectedGimmick.emoji} ${selectedGimmick.name}が発動！`;
+                this.dom.mysteryResultText.classList.add('visible');
+                
+                setTimeout(() => {
+                    this.dom.mysteryBoxOverlay.classList.remove('active');
+                    this.dom.mysteryBoxRoulette.classList.remove('active');
+                    this.dom.mysteryResultText.classList.remove('visible');
+                    
+                    setTimeout(() => {
+                        selectedGimmick.action();
+                        this.playSound(selectedGimmick.sound);
+                    }, 300);
+                }, 3000);
+            }
+        }, Math.max(50, 200 - spinCount * 5));
+    }
+    
     // 画面中央でのギミック演出
     activateSpecial(position) {
         const special = this.specialSquares[position];
         const player = this.players[this.currentPlayer];
         
         this.addLog(`${player.name}が「${special.name}」に止まりました！ ${special.emoji}`);
-        this.playSound(special.sound || 'special');
+        this.playSound(special.sound || 'lucky');
         
-        // 中央オーバーレイでアニメーション表示
         this.dom.specialEffect.textContent = special.emoji;
         this.dom.animationOverlay.classList.add('active');
         
-        // 演出が終わったら非表示にしてからアクション実行
         setTimeout(() => {
             this.dom.animationOverlay.classList.remove('active');
             setTimeout(() => {
@@ -596,7 +815,7 @@ class SugorokuGame {
         }, 1500);
     }
     
-    // 画面中央での豪華なゴール演出
+    // 豪華なゴール演出
     showGoalCelebration(winnerName) {
         this.dom.celebrationOverlay.innerHTML = '';
         this.dom.celebrationOverlay.classList.add('active');
@@ -604,16 +823,13 @@ class SugorokuGame {
         
         this.playSound('win');
 
-        // 中央に勝利メッセージを表示
         const goalMessage = document.createElement('div');
         goalMessage.className = 'goal-message';
         goalMessage.textContent = `🎉 ${winnerName} 優勝! 🎉`;
         this.dom.celebrationOverlay.appendChild(goalMessage);
 
-        // 花火エフェクト
         this.createFireworks();
 
-        // 紙吹雪を生成
         for (let i = 0; i < 300; i++) {
             const confetti = document.createElement('div');
             confetti.className = 'confetti';
@@ -641,7 +857,6 @@ class SugorokuGame {
     createFireworks() {
         const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffa500', '#ff69b4'];
         
-        // 10発の花火を順次打ち上げ
         for (let i = 0; i < 10; i++) {
             setTimeout(() => {
                 const firework = document.createElement('div');
@@ -654,7 +869,6 @@ class SugorokuGame {
                 firework.style.boxShadow = `0 0 50px ${colors[Math.floor(Math.random() * colors.length)]}`;
                 
                 this.dom.fireworksCanvas.appendChild(firework);
-                
                 this.playSound('firework');
                 
                 setTimeout(() => {
@@ -669,11 +883,10 @@ class SugorokuGame {
     // ゲーム終了
     endGame(winnerName) {
         this.gameEnded = true;
-        // 全BGM停止
         if (this.dom.backgroundMusic1) this.dom.backgroundMusic1.pause();
         if (this.dom.backgroundMusic2) this.dom.backgroundMusic2.pause();
         this.updateMusicStatus('stopped');
-        this.addLog(`${winnerName}がゴールしました！ゲーム終了です。`);
+        this.addLog(`🏆 ${winnerName}がゴールしました！ゲーム終了です。`);
         this.showGoalCelebration(winnerName);
     }
     
@@ -688,11 +901,9 @@ class SugorokuGame {
     updateDisplay() {
         const currentPlayerObj = this.players[this.currentPlayer];
         
-        // コンパクトなプレイヤーターン表示を更新
         this.dom.currentPlayerAvatar.textContent = currentPlayerObj.color;
         this.dom.currentPlayerName.textContent = currentPlayerObj.name;
         
-        // プレイヤーカード更新
         this.players.forEach((player, index) => {
             const card = document.getElementById(`player-${['kenchan', 'papa', 'mama'][index]}`);
             const positionSpan = card.querySelector('.player-position span');
@@ -703,25 +914,21 @@ class SugorokuGame {
             avatarDiv.textContent = player.color;
         });
         
-        // プレイヤーコマ更新
         this.updatePlayerPositions();
     }
     
     // プレイヤーコマ位置更新
     updatePlayerPositions() {
-        // 全てのマスからプレイヤーコマを削除
         document.querySelectorAll('.player-pieces').forEach(pieces => {
             pieces.innerHTML = '';
         });
         
-        // 各プレイヤーのコマを配置
         this.players.forEach((player, index) => {
             const square = document.getElementById(`square-${player.position}`);
             if (square) {
                 const piece = document.createElement('div');
                 piece.className = `player-piece ${['kenchan', 'papa', 'mama'][index]}`;
                 
-                // 現在のプレイヤーのコマを特別に強調
                 if (index === this.currentPlayer) {
                     piece.classList.add('current-player');
                 }
@@ -766,66 +973,7 @@ class SugorokuGame {
         }, 500);
     }
     
-    // 効果音再生
-    playSound(type) {
-        if (!this.audioContext) return;
-        
-        const sounds = {
-            'anticipation': { freqs: [440, 523, 659, 784], duration: 1.5, type: 'triangle', vol: 0.15 },
-            'high-roll': { freqs: [784, 988, 1175, 1397], duration: 1.0, type: 'sine', vol: 0.2 },
-            'low-roll': { freqs: [220, 175, 147], duration: 0.8, type: 'triangle', vol: 0.1 },
-            'normal-roll': { freq: 440, duration: 0.3, type: 'square', vol: 0.1 },
-            'double-bonus': { freqs: [659, 784, 988, 1175], duration: 1.2, type: 'sawtooth', vol: 0.2 },
-            'move': { freq: 523, duration: 0.2, type: 'sine', vol: 0.1 },
-            'skip': { freq: 349, duration: 0.25, type: 'triangle', vol: 0.1 },
-            'win': { freqs: [523, 659, 784, 1047, 1319], duration: 3.0, type: 'triangle', vol: 0.25 },
-            'firework': { freqs: [1047, 1319, 1568, 2093], duration: 0.8, type: 'sawtooth', vol: 0.2 },
-            'rocket': { freqs: [440, 880, 1320], duration: 0.8, type: 'sawtooth', vol: 0.15 },
-            'sad': { freqs: [440, 220, 110], duration: 0.8, type: 'sine', vol: 0.1 },
-            'lucky': { freqs: [523, 659, 784, 1047], duration: 1.0, type: 'triangle', vol: 0.15 },
-            'sleep': { freqs: [440, 220], duration: 1.2, type: 'sine', vol: 0.1 },
-            'wind': { freqs: [1000, 1500, 2000], duration: 0.7, type: 'sawtooth', vol: 0.1 },
-            'swap': { freqs: [440, 880, 440], duration: 0.5, type: 'square', vol: 0.1 },
-            'bomb': { freq: 100, duration: 0.4, type: 'sawtooth', vol: 0.2 },
-            'money': { freqs: [659, 784, 988], duration: 0.6, type: 'sine', vol: 0.15 },
-            'blackhole': { freqs: [880, 440, 220, 110], duration: 1.0, type: 'triangle', vol: 0.1 },
-            'storm': { freqs: [300, 200, 400, 150], duration: 0.8, type: 'sawtooth', vol: 0.1 },
-            'fortune': { freqs: [523, 440, 659, 784], duration: 1.2, type: 'square', vol: 0.1 },
-            'tragedy': { freqs: [440, 220, 110, 55], duration: 1.0, type: 'sawtooth', vol: 0.1 }
-        };
-        
-        const sound = sounds[type];
-        if (!sound) return;
-
-        if (sound.freqs) {
-            const noteDuration = sound.duration / sound.freqs.length;
-            sound.freqs.forEach((freq, index) => {
-                setTimeout(() => this.createTone(freq, noteDuration * 0.9, sound.type, sound.vol), index * noteDuration * 1000);
-            });
-        } else {
-            this.createTone(sound.freq, sound.duration, sound.type, sound.vol);
-        }
-    }
-
-    // 効果音生成
-    createTone(freq, dur, type, vol = 0.1) {
-        const osc = this.audioContext.createOscillator();
-        const gain = this.audioContext.createGain();
-        
-        osc.connect(gain);
-        gain.connect(this.audioContext.destination);
-        
-        osc.frequency.setValueAtTime(freq, this.audioContext.currentTime);
-        osc.type = type || 'sine';
-        
-        gain.gain.setValueAtTime(vol, this.audioContext.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + dur);
-        
-        osc.start();
-        osc.stop(this.audioContext.currentTime + dur);
-    }
-    
-    // ギミック効果: ワープ
+    // ギミック効果関数群（効果音付き）
     warpTo(targetPosition) {
         const player = this.players[this.currentPlayer];
         player.position = targetPosition;
@@ -835,7 +983,6 @@ class SugorokuGame {
         this.nextPlayer();
     }
     
-    // ギミック効果: スタートに戻る
     backToStart() {
         const player = this.players[this.currentPlayer];
         player.position = 0;
@@ -845,7 +992,6 @@ class SugorokuGame {
         this.nextPlayer();
     }
     
-    // ギミック効果: 指定位置に戻る
     backTo(position) {
         const player = this.players[this.currentPlayer];
         player.position = position;
@@ -855,12 +1001,10 @@ class SugorokuGame {
         this.nextPlayer();
     }
     
-    // ギミック効果: もう一度サイコロ
     rollAgain() {
         this.addLog(`${this.players[this.currentPlayer].name}はもう一度サイコロを振れます！`);
     }
     
-    // ギミック効果: 1回休み
     skipNextTurn() {
         const player = this.players[this.currentPlayer];
         player.skipNext = true;
@@ -868,7 +1012,6 @@ class SugorokuGame {
         this.nextPlayer();
     }
     
-    // ギミック効果: 次回倍ロール
     doubleNextRoll() {
         const player = this.players[this.currentPlayer];
         player.doubleNext = true;
@@ -876,7 +1019,6 @@ class SugorokuGame {
         this.nextPlayer();
     }
     
-    // ギミック効果: 前進
     moveForward(steps) {
         const player = this.players[this.currentPlayer];
         const oldPosition = player.position;
@@ -898,7 +1040,6 @@ class SugorokuGame {
         }
     }
     
-    // ギミック効果: 他プレイヤーと場所交換
     swapWithOther() {
         const currentPlayerObj = this.players[this.currentPlayer];
         const otherPlayers = this.players.filter((_, index) => index !== this.currentPlayer);
@@ -914,7 +1055,6 @@ class SugorokuGame {
         this.nextPlayer();
     }
     
-    // ギミック効果: 全員スタートに戻る
     allToStart() {
         this.players.forEach(player => {
             player.position = 0;
@@ -925,7 +1065,6 @@ class SugorokuGame {
         this.nextPlayer();
     }
     
-    // ギミック効果: 運命の分かれ道
     fortuneChoice() {
         const player = this.players[this.currentPlayer];
         const isEven = Math.random() < 0.5;
