@@ -1,4 +1,4 @@
-// 【効果音対応版】音楽修正版 - ゲーム状態管理
+// 【ドキドキ衝突版】効果音対応版 - ゲーム状態管理（追い抜きシステム削除済み）
 class SugorokuGame {
     constructor() {
         // プレイヤー設定
@@ -13,13 +13,13 @@ class SugorokuGame {
         this.gameStarted = false;
         this.currentMusic = 1;
         this.musicEnabled = true;
-        this.soundEnabled = true; // 効果音有効フラグ
+        this.soundEnabled = true;
         this.userInteracted = false;
         this.audioInitialized = false;
-        this.soundEffectsLoaded = 0; // 読み込まれた効果音数
+        this.soundEffectsLoaded = 0;
         
-        // ミステリーボックスマスの配置
-        this.mysteryBoxPositions = [6, 11, 16, 22, 27];
+        // ミステリーボックスマスの配置（8箇所に増量）
+        this.mysteryBoxPositions = [4, 8, 13, 16, 19, 22, 25, 27];
         
         // ギミックマス設定
         this.specialSquares = {
@@ -49,11 +49,12 @@ class SugorokuGame {
             { emoji: '💰', name: 'お小遣いゲット', action: () => this.moveForward(5), sound: 'money' }
         ];
         
-        // 【新機能】効果音要素名のリスト
+        // 効果音要素名のリスト（衝突システム用のみ残す）
         this.soundEffects = [
             'anticipation', 'critical-hit', 'high-roll', 'low-roll', 'normal-roll', 'double-bonus',
             'move', 'skip', 'win', 'firework', 'mystery-box', 'rocket', 'sad', 'lucky', 'sleep',
-            'wind', 'swap', 'bomb', 'money', 'blackhole', 'storm', 'fortune', 'tragedy'
+            'wind', 'swap', 'bomb', 'money', 'blackhole', 'storm', 'fortune', 'tragedy',
+            'collision', 'return-start' // 【衝突システム用のみ残す】
         ];
         
         // DOM要素のキャッシュ
@@ -88,7 +89,11 @@ class SugorokuGame {
             mysteryBoxOverlay: document.getElementById('mystery-box-overlay'),
             mysteryBoxAnimation: document.getElementById('mystery-box-animation'),
             mysteryBoxRoulette: document.getElementById('mystery-box-roulette'),
-            mysteryResultText: document.getElementById('mystery-result-text')
+            mysteryResultText: document.getElementById('mystery-result-text'),
+            // 【衝突システム用】演出用DOM
+            collisionOverlay: document.getElementById('collision-overlay'),
+            collisionText: document.getElementById('collision-text'),
+            collisionDetails: document.getElementById('collision-details')
         };
         
         this.init();
@@ -99,7 +104,7 @@ class SugorokuGame {
         this.bindEvents();
         this.bindEmojiSelection();
         this.setupAudioElements();
-        this.setupSoundEffects(); // 【新機能】効果音セットアップ
+        this.setupSoundEffects();
         this.showEmojiSelection();
         this.updateMusicStatus('ready');
     }
@@ -128,7 +133,7 @@ class SugorokuGame {
         });
     }
     
-    // 【新機能】効果音要素のセットアップ
+    // 効果音要素のセットアップ
     setupSoundEffects() {
         this.soundEffects.forEach(soundName => {
             const audio = document.getElementById(`sound-${soundName}`);
@@ -137,10 +142,9 @@ class SugorokuGame {
                     this.soundEffectsLoaded++;
                     console.log(`効果音 ${soundName} 読み込み完了 (${this.soundEffectsLoaded}/${this.soundEffects.length})`);
                     
-                    // すべての効果音が読み込まれた場合
                     if (this.soundEffectsLoaded >= this.soundEffects.length) {
                         console.log('すべての効果音の読み込みが完了しました');
-                        this.addLog('🔊 効果音の読み込みが完了しました！');
+                        this.addLog('🔊 ドキドキ衝突版用効果音の読み込みが完了しました！');
                     }
                 });
                 
@@ -226,7 +230,7 @@ class SugorokuGame {
         this.gameStarted = true;
         this.createBoard();
         this.updateDisplay();
-        this.addLog('🎉 ドキドキ究極版ゲームを開始しました！');
+        this.addLog('🎉 ドキドキ衝突版ゲームを開始しました！');
         
         // 音楽開始
         setTimeout(() => {
@@ -234,7 +238,7 @@ class SugorokuGame {
         }, 500);
     }
     
-    // すごろくボード作成
+    // すごろくボード作成（ミステリーボックスマス増量）
     createBoard() {
         const board = this.dom.board;
         board.innerHTML = '';
@@ -251,6 +255,7 @@ class SugorokuGame {
                 square.classList.add('goal');
                 square.innerHTML = '<div>ゴール</div><div>🏆</div>';
             } else if (this.mysteryBoxPositions.includes(i)) {
+                // ミステリーボックスマス
                 square.classList.add('mystery');
                 square.innerHTML = `<div>${i}</div><div>🎁</div>`;
             } else if (this.specialSquares[i]) {
@@ -305,7 +310,7 @@ class SugorokuGame {
             this.testMusic();
         });
         
-        // 【新機能】効果音テストボタン
+        // 効果音テストボタン
         this.dom.soundTestButton.addEventListener('click', () => {
             this.userInteracted = true;
             this.testSoundEffects();
@@ -353,7 +358,7 @@ class SugorokuGame {
         }
     }
     
-    // 【新機能】効果音テスト機能
+    // 効果音テスト機能（衝突システム含む）
     testSoundEffects() {
         if (!this.userInteracted) {
             alert('まず何かボタンをクリックしてから効果音をテストしてください。');
@@ -361,10 +366,10 @@ class SugorokuGame {
         }
         
         console.log('効果音テスト開始');
-        this.addLog('🔊 効果音テストを開始します...');
+        this.addLog('🔊 ドキドキ衝突版効果音テストを開始します...');
         
-        // 代表的な効果音を順次再生
-        const testSounds = ['normal-roll', 'rocket', 'bomb', 'lucky', 'win'];
+        // 代表的な効果音を順次再生（衝突システム含む）
+        const testSounds = ['normal-roll', 'rocket', 'bomb', 'lucky', 'collision', 'win'];
         let index = 0;
         
         const playNextSound = () => {
@@ -373,9 +378,9 @@ class SugorokuGame {
                 this.addLog(`🔊 テスト中: ${soundName}`);
                 this.playSound(soundName);
                 index++;
-                setTimeout(playNextSound, 1500); // 1.5秒間隔で再生
+                setTimeout(playNextSound, 1500);
             } else {
-                this.addLog('🔊 効果音テスト完了！');
+                this.addLog('🔊 ドキドキ衝突版効果音テスト完了！');
             }
         };
         
@@ -482,7 +487,7 @@ class SugorokuGame {
         }
     }
     
-    // 【改良】効果音再生機能（mp3ファイル対応）
+    // 効果音再生機能（mp3ファイル対応）
     playSound(soundType) {
         if (!this.soundEnabled || !this.userInteracted) {
             return;
@@ -490,7 +495,6 @@ class SugorokuGame {
         
         const audio = document.getElementById(`sound-${soundType}`);
         if (audio) {
-            // 音声を最初から再生するためにリセット
             audio.currentTime = 0;
             
             const playPromise = audio.play();
@@ -499,13 +503,11 @@ class SugorokuGame {
                     console.log(`効果音 ${soundType} 再生成功`);
                 }).catch(error => {
                     console.error(`効果音 ${soundType} 再生失敗:`, error);
-                    // フォールバック：Web Audio APIの合成音を再生
                     this.playSyntheticSound(soundType);
                 });
             }
         } else {
             console.warn(`効果音 ${soundType} が見つかりません。合成音で代替します。`);
-            // フォールバック：Web Audio APIの合成音を再生
             this.playSyntheticSound(soundType);
         }
     }
@@ -539,7 +541,10 @@ class SugorokuGame {
             'blackhole': { freqs: [880, 440, 220, 110], duration: 1.0, type: 'triangle', vol: 0.1 },
             'storm': { freqs: [300, 200, 400, 150], duration: 0.8, type: 'sawtooth', vol: 0.1 },
             'fortune': { freqs: [523, 440, 659, 784], duration: 1.2, type: 'square', vol: 0.1 },
-            'tragedy': { freqs: [440, 220, 110, 55], duration: 1.0, type: 'sawtooth', vol: 0.1 }
+            'tragedy': { freqs: [440, 220, 110, 55], duration: 1.0, type: 'sawtooth', vol: 0.1 },
+            // 【衝突システム用】合成音
+            'collision': { freqs: [200, 150, 100, 75], duration: 1.0, type: 'sawtooth', vol: 0.25 },
+            'return-start': { freqs: [330, 262, 220, 175], duration: 1.0, type: 'sine', vol: 0.15 }
         };
         
         const sound = sounds[type];
@@ -667,12 +672,13 @@ class SugorokuGame {
         }, 2000);
     }
     
-    // プレイヤー移動（ミステリーボックス対応）
+    // プレイヤー移動（衝突システムのみ）
     movePlayer(steps) {
         const player = this.players[this.currentPlayer];
         const oldPosition = player.position;
         let newPosition = oldPosition + steps;
         
+        // ぴったりゴールルール
         if (newPosition > 30) {
             newPosition = 30 - (newPosition - 30);
         }
@@ -680,24 +686,91 @@ class SugorokuGame {
         player.position = newPosition;
         this.addLog(`${player.name}が${steps}マス進んで${newPosition}マス目に移動しました。`);
         
+        // プレイヤーコマ移動アニメーション
         this.animatePlayerMovement(oldPosition, newPosition, () => {
+            // 音楽切り替えチェック
             this.checkMusicChange();
             
+            // ゴールチェック
             if (newPosition === 30) {
                 this.endGame(player.name);
                 return;
             }
             
-            if (this.mysteryBoxPositions.includes(newPosition)) {
-                this.activateMysteryBox(newPosition);
-            } else if (this.specialSquares[newPosition]) {
-                this.activateSpecial(newPosition);
-            } else {
-                this.nextPlayer();
-            }
+            // 【衝突システム】衝突チェックのみ
+            this.checkCollision(newPosition, () => {
+                // ミステリーボックスマスチェック
+                if (this.mysteryBoxPositions.includes(newPosition)) {
+                    this.activateMysteryBox(newPosition);
+                } else if (this.specialSquares[newPosition]) {
+                    // 通常のギミックチェック
+                    this.activateSpecial(newPosition);
+                } else {
+                    this.nextPlayer();
+                }
+            });
         });
         
         this.playSound('move');
+    }
+    
+    // 【衝突システム】衝突チェック
+    checkCollision(newPosition, callback) {
+        const currentPlayerObj = this.players[this.currentPlayer];
+        
+        // 同じマスにいる他のプレイヤーを検索
+        const playersOnSameSquare = this.players.filter((player, index) => 
+            index !== this.currentPlayer && player.position === newPosition && player.position > 0
+        );
+        
+        if (playersOnSameSquare.length > 0) {
+            // 【衝突システム】衝突発生
+            this.handleCollision(currentPlayerObj, playersOnSameSquare[0], callback);
+            return;
+        }
+        
+        // 衝突がない場合はそのまま続行
+        callback();
+    }
+    
+    // 【衝突システム】衝突処理
+    handleCollision(currentPlayerObj, otherPlayer, callback) {
+        // ランダムでどちらか一方がスタートに戻る
+        const victims = [currentPlayerObj, otherPlayer];
+        const victimIndex = Math.floor(Math.random() * 2);
+        const victim = victims[victimIndex];
+        const survivor = victims[1 - victimIndex];
+        
+        // 被害者をスタートに戻す
+        victim.position = 0;
+        
+        // 衝突演出表示
+        this.showCollisionEffect(victim, survivor);
+        
+        // ログ追加
+        this.addLog(`💥 ${currentPlayerObj.name}と${otherPlayer.name}が衝突しました！`, 'collision');
+        this.addLog(`😱 ${victim.name}がスタートに戻りました。${survivor.name}は${survivor.position}マス目に残ります。`, 'collision');
+        
+        // 効果音再生
+        this.playSound('collision');
+        
+        // 位置更新
+        this.updatePlayerPositions();
+        
+        // 衝突演出終了後にコールバック実行
+        setTimeout(() => {
+            callback();
+        }, 3000);
+    }
+    
+    // 【衝突システム】衝突演出
+    showCollisionEffect(victim, survivor) {
+        this.dom.collisionDetails.textContent = `${victim.name}がスタートに戻る！ ${survivor.name}は回避成功！`;
+        this.dom.collisionOverlay.classList.add('active');
+        
+        setTimeout(() => {
+            this.dom.collisionOverlay.classList.remove('active');
+        }, 3000);
     }
     
     // プレイヤー移動アニメーション
@@ -939,11 +1012,11 @@ class SugorokuGame {
         });
     }
     
-    // ログ追加
-    addLog(message) {
+    // ログ追加（カテゴリ分類対応）
+    addLog(message, category = 'normal') {
         const logContent = this.dom.logContent;
         const logEntry = document.createElement('div');
-        logEntry.className = 'log-entry';
+        logEntry.className = `log-entry ${category}`;
         logEntry.textContent = message;
         
         logContent.appendChild(logEntry);
@@ -987,6 +1060,7 @@ class SugorokuGame {
         const player = this.players[this.currentPlayer];
         player.position = 0;
         this.addLog(`${player.name}がスタートに戻りました。`);
+        this.playSound('return-start');
         this.updatePlayerPositions();
         this.checkMusicChange();
         this.nextPlayer();
@@ -1060,6 +1134,7 @@ class SugorokuGame {
             player.position = 0;
         });
         this.addLog('全員がスタートに戻りました！');
+        this.playSound('return-start');
         this.updatePlayerPositions();
         this.checkMusicChange();
         this.nextPlayer();

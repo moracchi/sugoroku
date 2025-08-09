@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>けんちゃんすごろく - ドキドキ究極版</title>
+    <title>けんちゃんすごろく - ドキドキ衝突版</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- シンプルなヘッダー -->
     <header>
-        <h1>🎲 けんちゃんすごろく - ドキドキ究極版 🎲</h1>
+        <h1>🎲 けんちゃんすごろく - ドキドキ衝突版 🎲</h1>
         <!-- BGMコントロールボタン -->
         <div id="bgm-controls">
             <button id="bgm-toggle">🎵 BGM ON/OFF</button>
@@ -176,6 +176,15 @@
         </div>
     </div>
 
+    <!-- 【衝突システム】衝突演出用オーバーレイ -->
+    <div id="collision-overlay">
+        <div id="collision-animation">
+            <div id="collision-text">💥 衝突発生！ 💥</div>
+            <div id="collision-details"></div>
+            <div id="collision-effect">⚡</div>
+        </div>
+    </div>
+
     <!-- 豪華なゴール演出用オーバーレイ -->
     <div id="goal-celebration"></div>
 
@@ -194,7 +203,7 @@
         お使いのブラウザは音声再生に対応していません。
     </audio>
 
-    <!-- 【新機能】効果音用Audio要素 -->
+    <!-- 効果音用Audio要素 -->
     <audio id="sound-anticipation" preload="auto" volume="0.5">
         <source src="audio/effects/anticipation.mp3" type="audio/mpeg">
     </audio>
@@ -263,6 +272,13 @@
     </audio>
     <audio id="sound-tragedy" preload="auto" volume="0.6">
         <source src="audio/effects/tragedy.mp3" type="audio/mpeg">
+    </audio>
+    <!-- 【衝突システム用】効果音 -->
+    <audio id="sound-collision" preload="auto" volume="0.7">
+        <source src="audio/effects/collision.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-return-start" preload="auto" volume="0.5">
+        <source src="audio/effects/return-start.mp3" type="audio/mpeg">
     </audio>
 
     <script src="script.js"></script>

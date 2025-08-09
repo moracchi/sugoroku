@@ -693,6 +693,12 @@ main {
     font-size: 0.95em;
 }
 
+/* 【衝突システム】衝突ログの特別スタイル */
+.log-entry.collision {
+    border-left-color: #e74c3c;
+    background: linear-gradient(90deg, #ffebee, #f8f9fa);
+}
+
 @keyframes slide-in {
     from { transform: translateX(-20px); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
@@ -998,6 +1004,89 @@ main {
     to { opacity: 1; transform: scale(1); }
 }
 
+/* 【衝突システム】衝突演出 */
+#collision-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2400;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: rgba(231, 76, 60, 0.2);
+}
+
+#collision-overlay.active {
+    display: flex;
+    animation: collision-flash 2.5s ease-out forwards;
+}
+
+@keyframes collision-flash {
+    0% { background: rgba(231, 76, 60, 0); }
+    10% { background: rgba(231, 76, 60, 0.8); }
+    30% { background: rgba(255, 255, 255, 0.5); }
+    50% { background: rgba(231, 76, 60, 0.4); }
+    80% { background: rgba(255, 255, 255, 0.2); }
+    100% { background: rgba(231, 76, 60, 0); }
+}
+
+#collision-animation {
+    text-align: center;
+    z-index: 2401;
+}
+
+#collision-text {
+    font-size: 5em;
+    font-weight: bold;
+    color: #e74c3c;
+    text-shadow: 
+        0 0 15px #ffffff,
+        0 0 25px #ff0000,
+        2px 2px 4px rgba(0, 0, 0, 0.8);
+    animation: collision-text-shake 1s ease-out;
+    margin-bottom: 20px;
+}
+
+@keyframes collision-text-shake {
+    0% { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+    25% { transform: scale(1.3) rotate(5deg); opacity: 1; }
+    50% { transform: scale(1.1) rotate(-3deg); opacity: 1; }
+    75% { transform: scale(1.2) rotate(3deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+#collision-details {
+    font-size: 2.2em;
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    margin-bottom: 20px;
+    animation: collision-details-bounce 1s ease-out 0.5s both;
+}
+
+@keyframes collision-details-bounce {
+    0% { transform: translateY(-50px) scale(0.8); opacity: 0; }
+    50% { transform: translateY(10px) scale(1.1); opacity: 1; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+#collision-effect {
+    font-size: 10em;
+    animation: collision-effect-explode 2s ease-out infinite;
+    filter: drop-shadow(0 0 10px #ffff00);
+}
+
+@keyframes collision-effect-explode {
+    0% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.5) rotate(90deg); }
+    50% { transform: scale(1.2) rotate(180deg); }
+    75% { transform: scale(1.8) rotate(270deg); }
+    100% { transform: scale(1) rotate(360deg); }
+}
+
 /* 豪華なゴール演出 */
 #goal-celebration {
     position: fixed;
@@ -1141,6 +1230,10 @@ main {
         font-size: 2em;
     }
     
+    #collision-text {
+        font-size: 3em;
+    }
+    
     .goal-message {
         font-size: 3em;
     }
@@ -1192,6 +1285,10 @@ main {
     
     #mystery-box {
         font-size: 6em;
+    }
+    
+    #collision-text {
+        font-size: 2.5em;
     }
     
     .goal-message {
